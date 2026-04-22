@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-center mb-4">
+        <div class="pipeline-steps">
+            <div class="step done">1<br><small>Upload</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">2<br><small>Register</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">3<br><small>Fuse</small></div>
+            <div class="step-line done"></div>
+            <div class="step active">4<br><small>Segment</small></div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-1">DT-CWT Fusion Result</h3>
+    <p class="text-center text-muted mb-4">
+        Fused using Dual-Tree Complex Wavelet Transform with max-coefficient detail selection.
+    </p>
+
+    <!-- Fused result -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow border-primary">
+                <div class="card-header fw-semibold bg-primary text-white">Fused Image</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/fusion.jpg') }}"
+                         class="img-fluid rounded" alt="Fused Image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wavelet sub-bands -->
+    <h5 class="text-center mb-3 text-muted">Wavelet Sub-bands (Level 1)</h5>
+    <div class="row g-3 mb-4 justify-content-center">
+        {% for label, name in [('MRI — LL (Approx)', 'mri_LL'), ('MRI — LH (Horiz)', 'mri_LH'),
+                                ('MRI — HL (Vert)', 'mri_HL'),  ('MRI — HH (Diag)', 'mri_HH'),
+                                ('CT — LL (Approx)',  'ct_LL'),   ('CT — LH (Horiz)',  'ct_LH'),
+                                ('CT — HL (Vert)',    'ct_HL'),   ('CT — HH (Diag)',   'ct_HH')] %}
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header text-center small py-1">{{ label }}</div>
+                <div class="card-body p-2 text-center">
+                    <img src="{{ url_for('static', filename='images/' + name + '.jpg') }}"
+                         class="img-fluid rounded" alt="{{ label }}">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('segmentation') }}" class="btn btn-primary px-5">
+            Run Watershed Segmentation →
+        </a>
+    </div>
+</div>
+{% endblock %}

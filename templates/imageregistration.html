@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-center mb-4">
+        <div class="pipeline-steps">
+            <div class="step done">1<br><small>Upload</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">2<br><small>Register</small></div>
+            <div class="step-line done"></div>
+            <div class="step active">3<br><small>Fuse</small></div>
+            <div class="step-line"></div>
+            <div class="step">4<br><small>Segment</small></div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-1">Registration Complete</h3>
+    <p class="text-center text-muted mb-4">
+        The MRI has been affine-warped to align with the CT. Proceed to DT-CWT fusion.
+    </p>
+
+    <div class="row g-4 justify-content-center mb-4">
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Registered MRI</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/mri_registered.jpg') }}"
+                         class="img-fluid rounded" alt="Registered MRI">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">CT Image (reference)</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/ct.jpg') }}"
+                         class="img-fluid rounded" alt="CT Image">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('fusion') }}" class="btn btn-primary px-5">
+            Run DT-CWT Fusion →
+        </a>
+    </div>
+</div>
+{% endblock %}

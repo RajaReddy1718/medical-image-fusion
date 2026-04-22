@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<style>
+.img-container { position: relative; display: inline-block; }
+.img-container img { cursor: crosshair; max-width: 100%; border: 2px solid #dee2e6; border-radius: 8px; }
+.dot {
+    position: absolute;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: bold;
+}
+.dot-mri { background: #0d6efd; border: 2px solid white; }
+.dot-ct  { background: #dc3545; border: 2px solid white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Pipeline indicator -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="pipeline-steps">
+            <div class="step done">1<br><small>Upload</small></div>
+            <div class="step-line done"></div>
+            <div class="step active">2<br><small>Register</small></div>
+            <div class="step-line"></div>
+            <div class="step">3<br><small>Fuse</small></div>
+            <div class="step-line"></div>
+            <div class="step">4<br><small>Segment</small></div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-1">Landmark Selection</h3>
+    <p class="text-center text-muted mb-4">
+        Click <strong id="remaining-label"></strong> corresponding points on each image.<br>
+        <span class="text-primary">Blue = MRI</span> &nbsp;|&nbsp; <span class="text-danger">Red = CT</span>
+    </p>
+
+    <!-- Status bar -->
+    <div class="d-flex justify-content-center mb-3 gap-4">
+        <div class="badge bg-primary fs-6">MRI: <span id="mri-count">0</span> / {{ points }}</div>
+        <div class="badge bg-danger fs-6">CT:  <span id="ct-count">0</span>  / {{ points }}</div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- MRI -->
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold">MRI Image</div>
+                <div class="card-body text-center">
+                    <div class="img-container" id="mri-container">
+                        <img src="{{ url_for('static', filename='images/mri.jpg') }}"
+                             id="mri-img" alt="MRI">
+                    </div>
+                    <p class="mt-2 mb-0 small text-muted">
+                        Last click: (<span id="mriX">—</span>, <span id="mriY">—</span>)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CT -->
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header fw-semibold">CT Image</div>
+                <div class="card-body text-center">
+                    <div class="img-container" id="ct-container">
+                        <img src="{{ url_for('static', filename='images/ct.jpg') }}"
+                             id="ct-img" alt="CT">
+                    </div>
+                    <p class="mt-2 mb-0 small text-muted">
+                        Last click: (<span id="ctX">—</span>, <span id="ctY">—</span>)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-center gap-3 mt-4">
+        <button class="btn btn-outline-secondary" onclick="resetPoints()">↺ Reset</button>
+        <button class="btn btn-primary px-5" id="submit-btn" onclick="submitPoints()" disabled>
+            Register Images →
+        </button>
+    </div>
+
+    <div id="status-msg" class="text-center mt-3"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const MAX_POINTS = {{ points }};
+let mriCoords = [];
+let ctCoords  = [];
+
+function updateUI() {
+    document.getElementById('mri-count').textContent = mriCoords.length;
+    document.getElementById('ct-count').textContent  = ctCoords.length;
+
+    const remaining = MAX_POINTS - Math.min(mriCoords.length, ctCoords.length);
+    document.getElementById('remaining-label').textContent =
+        remaining > 0 ? `${MAX_POINTS} landmark` : 'all landmarks selected';
+
+    const ready = mriCoords.length === MAX_POINTS && ctCoords.length === MAX_POINTS;
+    document.getElementById('submit-btn').disabled = !ready;
+}
+
+function addDot(containerId, x, y, index, type) {
+    const container = document.getElementById(containerId);
+    const dot = document.createElement('div');
+    dot.className = `dot dot-${type}`;
+    dot.style.left = x + 'px';
+    dot.style.top  = y + 'px';
+    dot.textContent = index + 1;
+    container.appendChild(dot);
+}
+
+function getRelativeCoords(event, imgElement) {
+    const rect = imgElement.getBoundingClientRect();
+    const scaleX = imgElement.naturalWidth  / imgElement.clientWidth;
+    const scaleY = imgElement.naturalHeight / imgElement.clientHeight;
+    // Display coords (for dot placement)
+    const dispX = event.clientX - rect.left;
+    const dispY = event.clientY - rect.top;
+    // Actual image pixel coords (for algorithm)
+    const imgX = Math.round(dispX * scaleX);
+    const imgY = Math.round(dispY * scaleY);
+    return { dispX, dispY, imgX, imgY };
+}
+
+document.getElementById('mri-img').addEventListener('click', function(e) {
+    if (mriCoords.length >= MAX_POINTS) {
+        alert(`Already selected ${MAX_POINTS} points on MRI.`);
+        return;
+    }
+    const { dispX, dispY, imgX, imgY } = getRelativeCoords(e, this);
+    mriCoords.push([imgX, imgY]);
+    addDot('mri-container', dispX, dispY, mriCoords.length - 1, 'mri');
+    document.getElementById('mriX').textContent = imgX;
+    document.getElementById('mriY').textContent = imgY;
+    updateUI();
+});
+
+document.getElementById('ct-img').addEventListener('click', function(e) {
+    if (ctCoords.length >= MAX_POINTS) {
+        alert(`Already selected ${MAX_POINTS} points on CT.`);
+        return;
+    }
+    const { dispX, dispY, imgX, imgY } = getRelativeCoords(e, this);
+    ctCoords.push([imgX, imgY]);
+    addDot('ct-container', dispX, dispY, ctCoords.length - 1, 'ct');
+    document.getElementById('ctX').textContent = imgX;
+    document.getElementById('ctY').textContent = imgY;
+    updateUI();
+});
+
+function resetPoints() {
+    mriCoords = [];
+    ctCoords  = [];
+    // Remove all dots
+    document.querySelectorAll('.dot').forEach(d => d.remove());
+    document.getElementById('mriX').textContent = '—';
+    document.getElementById('mriY').textContent = '—';
+    document.getElementById('ctX').textContent  = '—';
+    document.getElementById('ctY').textContent  = '—';
+    document.getElementById('status-msg').textContent = '';
+    updateUI();
+}
+
+function submitPoints() {
+    const btn = document.getElementById('submit-btn');
+    const msg = document.getElementById('status-msg');
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
+    msg.innerHTML = '<span class="text-muted">Processing registration…</span>';
+
+    fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mriCoord: mriCoords, ctCoord: ctCoords })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            window.location.href = '/registerimage';
+        } else {
+            msg.innerHTML = `<span class="text-danger">Error: ${data.error}</span>`;
+            btn.disabled = false;
+            btn.textContent = 'Register Images →';
+        }
+    })
+    .catch(err => {
+        msg.innerHTML = `<span class="text-danger">Request failed: ${err}</span>`;
+        btn.disabled = false;
+        btn.textContent = 'Register Images →';
+    });
+}
+
+updateUI();
+</script>
+{% endblock %}

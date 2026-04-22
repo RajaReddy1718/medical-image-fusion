@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-center mb-4">
+        <div class="pipeline-steps">
+            <div class="step done">1<br><small>Upload</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">2<br><small>Register</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">3<br><small>Fuse</small></div>
+            <div class="step-line done"></div>
+            <div class="step done">4<br><small>Segment</small></div>
+        </div>
+    </div>
+
+    <h3 class="text-center mb-1">Segmentation Result</h3>
+    <p class="text-center text-muted mb-4">
+        Watershed segmentation applied to the fused image. Red boundaries mark detected regions.
+    </p>
+
+    <div class="row g-4 justify-content-center mb-4">
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Fused Image</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/fusion.jpg') }}"
+                         class="img-fluid rounded" alt="Fused">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5 col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header fw-semibold bg-danger text-white">Segmented Image</div>
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/segmented.jpg') }}"
+                         class="img-fluid rounded" alt="Segmented">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary me-2">
+            ↩ Start Over
+        </a>
+    </div>
+</div>
+{% endblock %}

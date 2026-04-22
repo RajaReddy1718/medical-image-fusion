@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h2 class="card-title mb-1">Upload Images</h2>
+                    <p class="text-muted mb-4">Upload MRI and CT images to begin the fusion pipeline.</p>
+
+                    <!-- Pipeline steps indicator -->
+                    <div class="pipeline-steps mb-4">
+                        <div class="step active">1<br><small>Upload</small></div>
+                        <div class="step-line"></div>
+                        <div class="step">2<br><small>Register</small></div>
+                        <div class="step-line"></div>
+                        <div class="step">3<br><small>Fuse</small></div>
+                        <div class="step-line"></div>
+                        <div class="step">4<br><small>Segment</small></div>
+                    </div>
+
+                    <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">MRI Image</label>
+                            <input type="file" name="mri" accept="image/*" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">CT Image</label>
+                            <input type="file" name="ct" accept="image/*" class="form-control" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                Landmark Points for Registration
+                                <span class="text-muted fw-normal">(5–10)</span>
+                            </label>
+                            <input type="number" name="points" min="5" max="10" value="5"
+                                   class="form-control" required>
+                            <div class="form-text">Click this many points on each image to align them.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            Upload & Continue →
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info card -->
+            <div class="card mt-3 border-0 bg-light">
+                <div class="card-body py-3 px-4">
+                    <h6 class="mb-2">About This Pipeline</h6>
+                    <ul class="mb-0 ps-3 small text-muted">
+                        <li><strong>Registration</strong> — Landmark-based affine alignment</li>
+                        <li><strong>Fusion</strong> — Dual-Tree Complex Wavelet Transform (DT-CWT)</li>
+                        <li><strong>Segmentation</strong> — Watershed algorithm on fused image</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
