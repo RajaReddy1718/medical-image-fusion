@@ -1,77 +1,47 @@
-# Medical Image Fusion — DT-CWT
+# Medical Image Fusion using DT-CWT (Flask Web Application)
 
-A Flask web application for fusing CT and MRI brain images using the
-**Dual-Tree Complex Wavelet Transform (DT-CWT)** method, as described in:
+A web-based application for fusing CT and MRI brain images using a wavelet-based approach inspired by the Dual-Tree Complex Wavelet Transform (DT-CWT). The system performs image registration, fusion, and segmentation in a complete processing pipeline.
 
-> *Medical Image Fusion using Dual-Tree Complex Wavelet Transform for CT and MRI Modalities*  
-> Published in IJEAST
+## Overview
 
----
+Medical imaging modalities provide complementary information:
+- **CT scans** highlight bone structures
+- **MRI scans** capture soft tissue details
+
+This project combines both using image fusion techniques to enhance overall interpretability.
+
+## Features
+
+- Upload and process CT and MRI images
+- Landmark-based affine image registration
+- Wavelet-based image fusion
+- Watershed-based image segmentation
+- Interactive web interface built with Flask
 
 ## Pipeline
 
-```
-Upload MRI + CT
-      ↓
-Landmark-based Affine Registration   (user clicks N point pairs)
-      ↓
-DT-CWT Fusion                        (wavelet decomp → coefficient fusion → reconstruct)
-      ↓
-Watershed Segmentation               (Otsu + morphology + watershed)
-```
+1. Upload CT and MRI images  
+2. Select corresponding landmark points for alignment  
+3. Perform affine registration  
+4. Apply wavelet-based fusion  
+5. Generate segmented output using watershed algorithm  
 
----
+## Tech Stack
 
-## Setup
+- **Python**
+- **Flask** (web framework)
+- **OpenCV** (image processing)
+- **NumPy**
+- **PyWavelets** (wavelet transforms)
+- **Scikit-learn**
+
+## Installation
 
 ```bash
-# 1. Create virtual environment (recommended)
+git clone https://github.com/RajaReddy1718/medical-image-fusion.git
+cd medical-image-fusion
+
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
+venv\Scripts\activate   # On Windows
 
-# 2. Install dependencies
 pip install -r requirements.txt
-
-# 3. Run the app
-python app.py
-```
-
-Then open **http://127.0.0.1:5000** in your browser.
-
----
-
-## Project Structure
-
-```
-image_fusion/
-├── app.py                  # Main Flask app + all image processing logic
-├── requirements.txt
-├── static/
-│   ├── css/main.css        # Styles
-│   └── images/             # Auto-created; stores uploaded & processed images
-└── templates/
-    ├── base.html
-    ├── form.html            # Step 1: Upload
-    ├── registration.html    # Step 2: Landmark selection
-    ├── imageregistration.html  # Step 2 result
-    ├── fusion.html          # Step 3: Fusion result + sub-bands
-    └── segmentation.html    # Step 4: Segmentation result
-```
-
----
-
-## Key Technical Notes
-
-### DT-CWT Fusion (`dtcwt_fusion` in app.py)
-- Uses `pywt.wavedec2` with `db2` wavelet (best PyWavelets approximation of DT-CWT)
-- **Approximation subband (LL):** energy-weighted average using local energy maps
-- **Detail subbands (LH, HL, HH):** max absolute coefficient selection
-- 2-level decomposition for multi-scale feature capture
-
-### Registration (`procrustes_align` in app.py)
-- Least-squares affine transform from N user-clicked landmark pairs
-- `cv2.warpAffine` applies the transform to align MRI → CT space
-
-### Segmentation (`watershed_segmentation` in app.py)
-- Otsu thresholding → morphological opening → distance transform
-- Watershed markers → boundary detection (red overlay)
